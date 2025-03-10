@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../../../supabase/supabase";
 import { useAuth } from "../../../supabase/auth";
 import TopNavigation from "../dashboard/layout/TopNavigation";
@@ -128,7 +128,14 @@ export default function RepertoirePage() {
             {pieces.map((piece) => (
               <tr key={piece.id} className="border-b hover:bg-muted/50">
                 <td className="py-3 px-4">{piece.piece.composer}</td>
-                <td className="py-3 px-4">{piece.piece.title}</td>
+                <td className="py-3 px-4">
+                  <Link
+                    to={`/pieces/${piece.piece.id}`}
+                    className="hover:underline text-primary"
+                  >
+                    {piece.piece.title}
+                  </Link>
+                </td>
                 {status === "current" && (
                   <td className="py-3 px-4 w-40">
                     <div className="flex items-center gap-2">

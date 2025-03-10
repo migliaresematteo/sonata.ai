@@ -20,7 +20,16 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Award, Calendar, Clock, Edit, Music, Save, User } from "lucide-react";
+import {
+  Award,
+  Calendar,
+  Clock,
+  Edit,
+  Music,
+  Save,
+  User,
+  Trophy,
+} from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -29,6 +38,8 @@ interface UserProfile {
   instrument: string;
   experience_level: string;
   avatar_url: string;
+  xp?: number;
+  level?: number;
 }
 
 interface UserAchievement {
@@ -81,6 +92,9 @@ export default function UserProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [userXp, setUserXp] = useState(0);
+  const [userLevel, setUserLevel] = useState(1);
+  const [xpToNextLevel, setXpToNextLevel] = useState(100);
   const [achievements, setAchievements] = useState<UserAchievement[]>([]);
   const [pieces, setPieces] = useState<UserPiece[]>([]);
   const [sessions, setSessions] = useState<PracticeSession[]>([]);
@@ -123,6 +137,8 @@ export default function UserProfilePage() {
             instrument: "",
             experience_level: "beginner",
             avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`,
+            xp: 0,
+            level: 1,
           };
 
           const { error: insertError } = await supabase
@@ -131,6 +147,9 @@ export default function UserProfilePage() {
 
           if (insertError) throw insertError;
           setProfile(defaultProfile);
+          setUserXp(defaultProfile.xp || 0);
+          setUserLevel(defaultProfile.level || 1);
+          setXpToNextLevel(calculateXpForNextLevel(defaultProfile.level || 1));
           setEditedProfile({
             full_name: defaultProfile.full_name,
             bio: defaultProfile.bio,
@@ -139,6 +158,9 @@ export default function UserProfilePage() {
           });
         } else {
           setProfile(profileData);
+          setUserXp(profileData.xp || 0);
+          setUserLevel(profileData.level || 1);
+          setXpToNextLevel(calculateXpForNextLevel(profileData.level || 1));
           setEditedProfile({
             full_name: profileData.full_name,
             bio: profileData.bio,
@@ -229,6 +251,11 @@ export default function UserProfilePage() {
     fetchUserData();
   }, [user, navigate]);
 
+  const calculateXpForNextLevel = (level: number): number => {
+    // Simple formula: each level requires 100 * level XP
+    return 100 * level;
+  };
+
   const handleSaveProfile = async () => {
     try {
       const { error } = await supabase
@@ -306,17 +333,34 @@ export default function UserProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Profile Card */}
               <Card className="md:col-span-1">
-                <CardHeader className="relative pb-0">
-                  {!editing && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-4 top-4"
-                      onClick={() => setEditing(true)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
+                <CardHeader className="pb-0">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-sm font-medium flex items-center gap-2">
+                          <Trophy className="h-4 w-4 text-amber-500" /> Level{" "}
+                          {userLevel}
+                        </h3>
+                        <span className="text-xs text-muted-foreground">
+                          {userXp} / {xpToNextLevel} XP
+                        </span>
+                      </div>
+                      <Progress
+                        value={(userXp / xpToNextLevel) * 100}
+                        className="h-2"
+                      />
+                    </div>
+                    {!editing && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-4"
+                        onClick={() => setEditing(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex flex-col items-center">
                     <Avatar className="h-24 w-24 mb-4">
                       <AvatarImage

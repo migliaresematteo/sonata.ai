@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "../../../supabase/supabase";
 import { useAuth } from "../../../supabase/auth";
 import TopNavigation from "../dashboard/layout/TopNavigation";
@@ -16,7 +16,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Music, Search, Filter, Calendar, Users, Award } from "lucide-react";
+import {
+  Music,
+  Search,
+  Filter,
+  Calendar,
+  Users,
+  Award,
+  User,
+} from "lucide-react";
 
 interface Piece {
   id: string;
@@ -47,9 +55,12 @@ interface Challenge {
 }
 
 export default function Discover() {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const searchFromUrl = queryParams.get("search") || "";
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchFromUrl);
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -58,11 +69,8 @@ export default function Discover() {
   const [instrument, setInstrument] = useState("all");
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
+    // Update search query when URL changes
+    setSearchQuery(searchFromUrl);
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -99,7 +107,7 @@ export default function Discover() {
     };
 
     fetchData();
-  }, [user, navigate]);
+  }, [user, navigate, searchFromUrl]);
 
   const filteredPieces = pieces.filter((piece) => {
     const matchesSearch =
@@ -133,6 +141,11 @@ export default function Discover() {
   );
 
   const addToRepertoire = async (pieceId: string, status: string) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     try {
       const { error } = await supabase.from("user_pieces").insert({
         user_id: user?.id,
@@ -151,6 +164,11 @@ export default function Discover() {
   };
 
   const joinChallenge = async (challengeId: string) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     try {
       const { error } = await supabase.from("user_challenges").insert({
         user_id: user?.id,
@@ -168,6 +186,11 @@ export default function Discover() {
   };
 
   const registerForEvent = async (eventId: string) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     try {
       const { error } = await supabase.from("user_events").insert({
         user_id: user?.id,
@@ -267,6 +290,14 @@ export default function Discover() {
                   <Award className="h-4 w-4" />
                   Challenges
                 </TabsTrigger>
+                <TabsTrigger
+                  value="composers"
+                  className="flex items-center gap-2"
+                  onClick={() => navigate("/composers")}
+                >
+                  <User className="h-4 w-4" />
+                  Composers
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="pieces" className="space-y-6">
@@ -347,7 +378,12 @@ export default function Discover() {
                           <div className="flex justify-between items-start">
                             <div>
                               <CardTitle className="text-xl">
-                                {piece.title}
+                                <Link
+                                  to={`/pieces/${piece.id}`}
+                                  className="hover:underline"
+                                >
+                                  {piece.title}
+                                </Link>
                               </CardTitle>
                               <p className="text-muted-foreground">
                                 {piece.composer}

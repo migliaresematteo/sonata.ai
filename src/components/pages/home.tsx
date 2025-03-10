@@ -29,27 +29,7 @@ import { useAuth } from "../../../supabase/auth";
 import { motion } from "framer-motion";
 
 export default function LandingPage() {
-  // Initialize with default values to avoid errors when not in AuthProvider
-  const { user = null, signOut = () => Promise.resolve() } = useContext(
-    createContext<any>({}),
-  );
-
-  // Only try to use useAuth if we're inside the AuthProvider
-  useEffect(() => {
-    try {
-      const auth = useAuth();
-      if (auth) {
-        // Update state with actual auth values
-        if (auth.user !== user) {
-          // Force re-render with actual auth values
-          window.location.reload();
-        }
-      }
-    } catch (error) {
-      // AuthProvider not available yet, will retry on next render
-      console.log("Auth provider not available yet");
-    }
-  }, []);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
@@ -140,12 +120,20 @@ export default function LandingPage() {
 
   const handleLoginClick = (e) => {
     e.preventDefault();
-    navigate("/login");
+    if (!user) {
+      navigate("/login");
+    } else {
+      navigate("/profile");
+    }
   };
 
   const handleSignupClick = (e) => {
     e.preventDefault();
-    navigate("/signup");
+    if (!user) {
+      navigate("/signup");
+    } else {
+      navigate("/repertoire");
+    }
   };
 
   return (
@@ -204,13 +192,13 @@ export default function LandingPage() {
             ) : (
               <>
                 <Button variant="ghost" onClick={handleLoginClick}>
-                  Sign In
+                  {user ? "My Profile" : "Sign In"}
                 </Button>
                 <Button
                   className="bg-indigo-600 hover:bg-indigo-700"
                   onClick={handleSignupClick}
                 >
-                  Get Started
+                  {user ? "My Repertoire" : "Get Started"}
                 </Button>
               </>
             )}
@@ -290,7 +278,7 @@ export default function LandingPage() {
                     className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none"
                     onClick={handleSignupClick}
                   >
-                    Start Your Journey
+                    {user ? "View My Repertoire" : "Start Your Journey"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
@@ -299,7 +287,7 @@ export default function LandingPage() {
                     className="border-indigo-200 hover:bg-indigo-50"
                     onClick={handleLoginClick}
                   >
-                    Sign In
+                    {user ? "My Profile" : "Sign In"}
                   </Button>
                 </motion.div>
               </div>
@@ -498,7 +486,7 @@ export default function LandingPage() {
                 className="bg-white text-indigo-700 hover:bg-gray-100"
                 onClick={handleSignupClick}
               >
-                Get Started Today
+                {user ? "Go to Dashboard" : "Get Started Today"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </motion.div>

@@ -7,7 +7,12 @@ import RepertoirePage from "./components/pages/repertoire";
 import Success from "./components/pages/success";
 import Home from "./components/pages/home";
 import Discover from "./components/pages/discover";
+import ComposersPage from "./components/pages/composers";
+import ComposerPage from "./components/pages/composer";
+import PiecePage from "./components/pages/piece";
+import MissionsPage from "./components/pages/missions";
 import UserProfilePage from "./components/profile/UserProfilePage";
+import SettingsPage from "./components/pages/settings";
 import AITeacher from "./components/ai/AITeacher";
 import { AuthProvider, useAuth } from "../supabase/auth";
 
@@ -29,7 +34,6 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<SignUpForm />} />
         <Route
@@ -40,11 +44,16 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
+        <Route path="/" element={<Home />} />
+        <Route path="/discover" element={<Discover />} />
+        <Route path="/composers" element={<ComposersPage />} />
+        <Route path="/composers/:id" element={<ComposerPage />} />
+        <Route path="/pieces/:id" element={<PiecePage />} />
         <Route
-          path="/discover"
+          path="/missions"
           element={
             <PrivateRoute>
-              <Discover />
+              <MissionsPage />
             </PrivateRoute>
           }
         />
@@ -53,6 +62,14 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <UserProfilePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <SettingsPage />
             </PrivateRoute>
           }
         />

@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../../../supabase/auth";
+import MissionsPanel from "./MissionsPanel";
 import {
   Home,
   LayoutDashboard,
@@ -13,13 +15,18 @@ import {
   Music,
   Search,
   Sparkles,
-  Award,
+  Trophy,
+  LogIn,
+  UserPlus,
+  Menu,
+  X,
 } from "lucide-react";
 
 interface NavItem {
   icon: React.ReactNode;
   label: string;
   href: string;
+  requiresAuth?: boolean;
 }
 
 interface SidebarProps {
@@ -28,71 +35,192 @@ interface SidebarProps {
 
 const navItems: NavItem[] = [
   { icon: <Home size={20} />, label: "Home", href: "/" },
-  { icon: <User size={20} />, label: "Profile", href: "/profile" },
-  { icon: <Music size={20} />, label: "Repertoire", href: "/repertoire" },
+  {
+    icon: <User size={20} />,
+    label: "Profile",
+    href: "/profile",
+    requiresAuth: true,
+  },
+  {
+    icon: <Music size={20} />,
+    label: "Repertoire",
+    href: "/repertoire",
+    requiresAuth: true,
+  },
   { icon: <Search size={20} />, label: "Discover", href: "/discover" },
-  { icon: <Sparkles size={20} />, label: "AI Teacher", href: "/ai-teacher" },
-  { icon: <Award size={20} />, label: "Achievements", href: "/profile" },
+  {
+    icon: <Sparkles size={20} />,
+    label: "AI Teacher",
+    href: "/ai-teacher",
+    requiresAuth: true,
+  },
+  {
+    icon: <Trophy size={20} />,
+    label: "Missions",
+    href: "/missions",
+    requiresAuth: true,
+  },
 ];
 
 const bottomItems: NavItem[] = [
-  { icon: <User size={20} />, label: "Profile", href: "/profile" },
-  { icon: <Settings size={20} />, label: "Settings", href: "/profile" },
-  { icon: <HelpCircle size={20} />, label: "Help", href: "/" },
+  {
+    icon: <User size={20} />,
+    label: "Profile",
+    href: "/profile",
+    requiresAuth: true,
+  },
+  {
+    icon: <Settings size={20} />,
+    label: "Settings",
+    href: "/settings",
+    requiresAuth: true,
+  },
+  { icon: <HelpCircle size={20} />, label: "Help", href: "/help" },
+];
+
+const authItems: NavItem[] = [
+  { icon: <LogIn size={20} />, label: "Login", href: "/login" },
+  { icon: <UserPlus size={20} />, label: "Sign Up", href: "/signup" },
 ];
 
 const Sidebar = ({ activeItem = "Dashboard" }: SidebarProps) => {
-  return (
-    <div className="w-[280px] h-full bg-background border-r flex flex-col">
-      <div className="p-6">
-        <h2 className="text-xl font-semibold mb-2">Virtuoso</h2>
-        <p className="text-sm text-muted-foreground">
-          Classical Musician's Assistant
-        </p>
+  const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const sidebarContent = (
+    <>
+      <div className="p-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Virtuoso</h2>
+          <p className="text-sm text-muted-foreground">
+            Classical Musician's Assistant
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={toggleSidebar}
+        >
+          <X size={24} />
+        </Button>
       </div>
 
       <ScrollArea className="flex-1 px-4">
         <div className="space-y-2">
-          {navItems.map((item) => (
-            <Link to={item.href} key={item.label}>
-              <Button
-                variant={item.label === activeItem ? "secondary" : "ghost"}
-                className="w-full justify-start gap-2"
+          {navItems
+            .filter((item) => !item.requiresAuth || (item.requiresAuth && user))
+            .map((item) => (
+              <Link
+                to={item.href}
+                key={item.label}
+                onClick={() => setIsOpen(false)}
               >
-                {item.icon}
-                {item.label}
-              </Button>
-            </Link>
-          ))}
+                <Button
+                  variant={item.label === activeItem ? "secondary" : "ghost"}
+                  className="w-full justify-start gap-2"
+                >
+                  {item.icon}
+                  {item.label}
+                </Button>
+              </Link>
+            ))}
         </div>
 
-        <Separator className="my-4" />
+        {!user && (
+          <>
+            <Separator className="my-4" />
+            <div className="space-y-2">
+              {authItems.map((item) => (
+                <Link
+                  to={item.href}
+                  key={item.label}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Button
+                    variant={
+                      item.label === activeItem ? "secondary" : "default"
+                    }
+                    className="w-full justify-start gap-2"
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Button>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium px-4 py-2">Practice Filters</h3>
-          <Button variant="ghost" className="w-full justify-start gap-2">
-            🎹 Piano
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2">
-            🎻 Violin
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2">
-            🎵 Voice
-          </Button>
-        </div>
+        {user && (
+          <>
+            <Separator className="my-4" />
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium px-4 py-2">Daily Missions</h3>
+              <div className="px-2">
+                <MissionsPanel />
+              </div>
+            </div>
+          </>
+        )}
       </ScrollArea>
 
       <div className="p-4 mt-auto border-t">
-        {bottomItems.map((item) => (
-          <Link to={item.href} key={item.label}>
-            <Button variant="ghost" className="w-full justify-start gap-2 mb-2">
-              {item.icon}
-              {item.label}
-            </Button>
-          </Link>
-        ))}
+        {user ? (
+          bottomItems
+            .filter((item) => !item.requiresAuth || (item.requiresAuth && user))
+            .map((item) => (
+              <Link
+                to={item.href}
+                key={item.label}
+                onClick={() => setIsOpen(false)}
+              >
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2 mb-2"
+                >
+                  {item.icon}
+                  {item.label}
+                </Button>
+              </Link>
+            ))
+        ) : (
+          <p className="text-xs text-center text-muted-foreground">
+            Sign in to access all features
+          </p>
+        )}
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile menu button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden mt-16"
+        onClick={toggleSidebar}
+      >
+        <Menu size={24} />
+      </Button>
+
+      {/* Mobile sidebar */}
+      <div
+        className={`fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden transition-opacity duration-200 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        onClick={toggleSidebar}
+      />
+
+      <div
+        className={`fixed top-0 left-0 h-full bg-background border-r flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"} md:relative md:w-[280px]`}
+      >
+        {sidebarContent}
+      </div>
+    </>
   );
 };
 

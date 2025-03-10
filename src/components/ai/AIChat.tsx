@@ -59,19 +59,29 @@ export default function AIChat({ className = "" }: AITeacherProps) {
     setLoading(true);
 
     try {
-      // Call Supabase Edge Function for AI response
-      const { data, error } = await supabase.functions.invoke("ai-teacher", {
-        body: {
-          message: input,
-          userId: user?.id,
-          userEmail: user?.email,
-        },
-      });
+      // Try to call Supabase Edge Function for AI response
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-teacher", {
+          body: {
+            message: input,
+            userId: user?.id,
+            userEmail: user?.email,
+          },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+
+        // Use the response from the edge function if available
+        if (data && data.response) {
+          return data.response;
+        }
+      } catch (functionError) {
+        console.log("Edge function error, using fallback:", functionError);
+        // Continue to fallback if edge function fails
+      }
 
       // If we don't have a real edge function yet, use a simulated response
-      const aiResponse = data?.response || simulateAIResponse(input);
+      const aiResponse = simulateAIResponse(input);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

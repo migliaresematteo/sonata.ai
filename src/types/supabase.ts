@@ -86,6 +86,42 @@ export type Database = {
           },
         ]
       }
+      composers: {
+        Row: {
+          bio: string | null
+          birth_year: number | null
+          created_at: string | null
+          death_year: number | null
+          id: string
+          image_url: string | null
+          name: string
+          nationality: string | null
+          period: string | null
+        }
+        Insert: {
+          bio?: string | null
+          birth_year?: number | null
+          created_at?: string | null
+          death_year?: number | null
+          id?: string
+          image_url?: string | null
+          name: string
+          nationality?: string | null
+          period?: string | null
+        }
+        Update: {
+          bio?: string | null
+          birth_year?: number | null
+          created_at?: string | null
+          death_year?: number | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          nationality?: string | null
+          period?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string | null
@@ -123,6 +159,7 @@ export type Database = {
         Row: {
           average_duration: number | null
           composer: string
+          composer_id: string | null
           created_at: string | null
           description: string | null
           difficulty: number | null
@@ -136,6 +173,7 @@ export type Database = {
         Insert: {
           average_duration?: number | null
           composer: string
+          composer_id?: string | null
           created_at?: string | null
           description?: string | null
           difficulty?: number | null
@@ -149,6 +187,7 @@ export type Database = {
         Update: {
           average_duration?: number | null
           composer?: string
+          composer_id?: string | null
           created_at?: string | null
           description?: string | null
           difficulty?: number | null
@@ -159,7 +198,15 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pieces_composer_id_fkey"
+            columns: ["composer_id"]
+            isOneToOne: false
+            referencedRelation: "composers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       practice_sessions: {
         Row: {
@@ -235,7 +282,9 @@ export type Database = {
           full_name: string | null
           id: string
           instrument: string | null
+          level: number | null
           updated_at: string | null
+          xp: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -245,7 +294,9 @@ export type Database = {
           full_name?: string | null
           id: string
           instrument?: string | null
+          level?: number | null
           updated_at?: string | null
+          xp?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -255,7 +306,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           instrument?: string | null
+          level?: number | null
           updated_at?: string | null
+          xp?: number | null
         }
         Relationships: []
       }
@@ -401,6 +454,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_settings: {
+        Row: {
+          created_at: string | null
+          deepseek_api_key: string | null
+          id: string
+          notifications_enabled: boolean | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deepseek_api_key?: string | null
+          id?: string
+          notifications_enabled?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deepseek_api_key?: string | null
+          id?: string
+          notifications_enabled?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       users: {
         Row: {
