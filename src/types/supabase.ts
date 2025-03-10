@@ -278,37 +278,61 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
+          discord_username: string | null
           experience_level: string | null
           full_name: string | null
           id: string
+          instagram_username: string | null
           instrument: string | null
           level: number | null
+          profile_accessories: Json | null
+          profile_banner: string | null
+          profile_color: string | null
+          profile_icon: string | null
+          telegram_username: string | null
           updated_at: string | null
           xp: number | null
+          youtube_channel: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          discord_username?: string | null
           experience_level?: string | null
           full_name?: string | null
           id: string
+          instagram_username?: string | null
           instrument?: string | null
           level?: number | null
+          profile_accessories?: Json | null
+          profile_banner?: string | null
+          profile_color?: string | null
+          profile_icon?: string | null
+          telegram_username?: string | null
           updated_at?: string | null
           xp?: number | null
+          youtube_channel?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          discord_username?: string | null
           experience_level?: string | null
           full_name?: string | null
           id?: string
+          instagram_username?: string | null
           instrument?: string | null
           level?: number | null
+          profile_accessories?: Json | null
+          profile_banner?: string | null
+          profile_color?: string | null
+          profile_icon?: string | null
+          telegram_username?: string | null
           updated_at?: string | null
           xp?: number | null
+          youtube_channel?: string | null
         }
         Relationships: []
       }
@@ -379,6 +403,33 @@ export type Database = {
           },
         ]
       }
+      user_connections: {
+        Row: {
+          connected_user_id: string | null
+          created_at: string | null
+          id: string
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          connected_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          status: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          connected_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_events: {
         Row: {
           event_id: string | null
@@ -407,6 +458,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_missions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          mission_id: string
+          user_id: string | null
+          xp_earned: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          mission_id: string
+          user_id?: string | null
+          xp_earned?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          mission_id?: string
+          user_id?: string | null
+          xp_earned?: number | null
+        }
+        Relationships: []
       }
       user_pieces: {
         Row: {

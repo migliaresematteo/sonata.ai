@@ -130,7 +130,25 @@ export default function MissionsPanel() {
 
   const handleCompleteMission = async (missionId: string, xpReward: number) => {
     try {
-      // Update mission status
+      // First check if mission has already been completed to prevent multiple claims
+      const { data: existingMission, error: checkError } = await supabase
+        .from("user_missions")
+        .select("id")
+        .eq("user_id", user?.id)
+        .eq("mission_id", missionId)
+        .single();
+
+      if (checkError && checkError.code !== "PGRST116") {
+        throw checkError;
+      }
+
+      // If mission already completed, don't allow claiming again
+      if (existingMission) {
+        alert("You've already claimed this reward!");
+        return;
+      }
+
+      // Update mission status in local state
       if (
         missionId.startsWith("1") ||
         missionId.startsWith("2") ||
@@ -139,7 +157,7 @@ export default function MissionsPanel() {
         setDailyMissions((prev) =>
           prev.map((mission) =>
             mission.id === missionId
-              ? { ...mission, isCompleted: true }
+              ? { ...mission, isCompleted: true, progress: 100 }
               : mission,
           ),
         );
@@ -147,7 +165,7 @@ export default function MissionsPanel() {
         setWeeklyMissions((prev) =>
           prev.map((mission) =>
             mission.id === missionId
-              ? { ...mission, isCompleted: true }
+              ? { ...mission, isCompleted: true, progress: 100 }
               : mission,
           ),
         );
@@ -164,7 +182,22 @@ export default function MissionsPanel() {
         alert(`Congratulations! You've reached level ${newLevel}!`);
       }
 
-      // Update user profile
+      // Store completed mission in database FIRST to prevent duplicate claims
+      const { error: missionError } = await supabase
+        .from("user_missions")
+        .insert({
+          user_id: user?.id,
+          mission_id: missionId,
+          completed_at: new Date().toISOString(),
+          xp_earned: xpReward,
+        });
+
+      if (missionError) {
+        console.error("Error saving mission completion:", missionError);
+        throw missionError;
+      }
+
+      // Update user profile in database
       const { error } = await supabase
         .from("profiles")
         .update({ xp: newXp, level: newLevel })
@@ -178,6 +211,7 @@ export default function MissionsPanel() {
       setXpToNextLevel(calculateXpForNextLevel(newLevel));
     } catch (error) {
       console.error("Error completing mission:", error);
+      alert("There was an error claiming your reward. Please try again.");
     }
   };
 

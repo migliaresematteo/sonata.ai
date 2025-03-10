@@ -14,6 +14,8 @@ import MissionsPage from "./components/pages/missions";
 import UserProfilePage from "./components/profile/UserProfilePage";
 import SettingsPage from "./components/pages/settings";
 import AITeacher from "./components/ai/AITeacher";
+import SocialPage from "./components/pages/social";
+import LeaderboardPage from "./components/pages/leaderboard";
 import { AuthProvider, useAuth } from "../supabase/auth";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -78,6 +80,22 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <AITeacher />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/social"
+          element={
+            <PrivateRoute>
+              <SocialPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <PrivateRoute>
+              <LeaderboardPage />
             </PrivateRoute>
           }
         />

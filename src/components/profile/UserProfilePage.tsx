@@ -29,6 +29,9 @@ import {
   Save,
   User,
   Trophy,
+  Star,
+  Image,
+  Palette,
 } from "lucide-react";
 
 interface UserProfile {
@@ -40,6 +43,13 @@ interface UserProfile {
   avatar_url: string;
   xp?: number;
   level?: number;
+  discord_username?: string;
+  telegram_username?: string;
+  instagram_username?: string;
+  youtube_channel?: string;
+  profile_color?: string;
+  profile_icon?: string;
+  profile_banner?: string;
 }
 
 interface UserAchievement {
@@ -106,6 +116,13 @@ export default function UserProfilePage() {
     bio: string;
     instrument: string;
     experience_level: string;
+    discord_username?: string;
+    telegram_username?: string;
+    instagram_username?: string;
+    youtube_channel?: string;
+    profile_color?: string;
+    profile_icon?: string;
+    profile_banner?: string;
   }>({ full_name: "", bio: "", instrument: "", experience_level: "" });
 
   useEffect(() => {
@@ -130,6 +147,20 @@ export default function UserProfilePage() {
 
         // If profile doesn't exist, create a default one
         if (!profileData) {
+          // Generate random profile color and icon for new users
+          const colors = [
+            "indigo",
+            "purple",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "pink",
+          ];
+          const icons = ["music", "star", "trophy"];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+
           const defaultProfile = {
             id: user.id,
             full_name: user.user_metadata?.full_name || "",
@@ -139,6 +170,8 @@ export default function UserProfilePage() {
             avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`,
             xp: 0,
             level: 1,
+            profile_color: randomColor,
+            profile_icon: randomIcon,
           };
 
           const { error: insertError } = await supabase
@@ -155,6 +188,13 @@ export default function UserProfilePage() {
             bio: defaultProfile.bio,
             instrument: defaultProfile.instrument,
             experience_level: defaultProfile.experience_level,
+            discord_username: defaultProfile.discord_username,
+            telegram_username: defaultProfile.telegram_username,
+            instagram_username: defaultProfile.instagram_username,
+            youtube_channel: defaultProfile.youtube_channel,
+            profile_color: defaultProfile.profile_color,
+            profile_icon: defaultProfile.profile_icon,
+            profile_banner: defaultProfile.profile_banner,
           });
         } else {
           setProfile(profileData);
@@ -166,6 +206,13 @@ export default function UserProfilePage() {
             bio: profileData.bio,
             instrument: profileData.instrument,
             experience_level: profileData.experience_level,
+            discord_username: profileData.discord_username,
+            telegram_username: profileData.telegram_username,
+            instagram_username: profileData.instagram_username,
+            youtube_channel: profileData.youtube_channel,
+            profile_color: profileData.profile_color,
+            profile_icon: profileData.profile_icon,
+            profile_banner: profileData.profile_banner,
           });
         }
 
@@ -258,30 +305,44 @@ export default function UserProfilePage() {
 
   const handleSaveProfile = async () => {
     try {
+      console.log("Updating profile for user ID:", user?.id);
+
+      // Create update object with only defined values
+      const updateData = {
+        full_name: editedProfile.full_name || "",
+        bio: editedProfile.bio || "",
+        instrument: editedProfile.instrument || "",
+        experience_level: editedProfile.experience_level || "beginner",
+        discord_username: editedProfile.discord_username,
+        telegram_username: editedProfile.telegram_username,
+        instagram_username: editedProfile.instagram_username,
+        youtube_channel: editedProfile.youtube_channel,
+        profile_color: editedProfile.profile_color,
+        profile_icon: editedProfile.profile_icon,
+        profile_banner: editedProfile.profile_banner,
+      };
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          full_name: editedProfile.full_name,
-          bio: editedProfile.bio,
-          instrument: editedProfile.instrument,
-          experience_level: editedProfile.experience_level,
-        })
+        .update(updateData)
         .eq("id", user?.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
+      }
 
+      // Update local state with the same data we sent to the server
       setProfile({
         ...profile!,
-        full_name: editedProfile.full_name,
-        bio: editedProfile.bio,
-        instrument: editedProfile.instrument,
-        experience_level: editedProfile.experience_level,
+        ...updateData,
       });
 
       setEditing(false);
+      alert("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile");
+      alert(`Failed to update profile: ${error.message || "Unknown error"}`);
     }
   };
 
@@ -332,7 +393,26 @@ export default function UserProfilePage() {
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Profile Card */}
-              <Card className="md:col-span-1">
+              <Card
+                className="md:col-span-1 overflow-hidden"
+                style={
+                  profile?.profile_color
+                    ? {
+                        borderColor: `var(--${profile.profile_color}-200)`,
+                        background: `linear-gradient(to bottom, var(--${profile.profile_color}-50), transparent)`,
+                      }
+                    : {}
+                }
+              >
+                {profile?.profile_banner && (
+                  <div className="h-24 w-full overflow-hidden">
+                    <img
+                      src={profile.profile_banner}
+                      alt="Profile banner"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <CardHeader className="pb-0">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
@@ -362,15 +442,41 @@ export default function UserProfilePage() {
                     )}
                   </div>
                   <div className="flex flex-col items-center">
-                    <Avatar className="h-24 w-24 mb-4">
-                      <AvatarImage
-                        src={profile?.avatar_url}
-                        alt={profile?.full_name}
-                      />
-                      <AvatarFallback>
-                        <User className="h-12 w-12" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <div
+                        className="rounded-full p-1"
+                        style={
+                          profile?.profile_color
+                            ? {
+                                background: `var(--${profile.profile_color}-200)`,
+                              }
+                            : {}
+                        }
+                      >
+                        <Avatar className="h-24 w-24 mb-4 border-4 border-white dark:border-gray-800">
+                          <AvatarImage
+                            src={profile?.avatar_url}
+                            alt={profile?.full_name}
+                          />
+                          <AvatarFallback>
+                            <User className="h-12 w-12" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      {profile?.profile_icon && (
+                        <div className="absolute bottom-4 right-0 bg-white dark:bg-gray-800 rounded-full p-1 border-2 border-background">
+                          {profile.profile_icon === "music" && (
+                            <Music className="h-5 w-5 text-indigo-500" />
+                          )}
+                          {profile.profile_icon === "star" && (
+                            <Star className="h-5 w-5 text-amber-500" />
+                          )}
+                          {profile.profile_icon === "trophy" && (
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
                     {editing ? (
                       <div className="w-full space-y-4">
                         <div>
@@ -434,6 +540,147 @@ export default function UserProfilePage() {
                             rows={4}
                           />
                         </div>
+
+                        <Separator className="my-4" />
+
+                        <h3 className="text-lg font-medium mb-2">
+                          Profile Customization
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          <div>
+                            <Label htmlFor="profileColor">Profile Color</Label>
+                            <select
+                              id="profileColor"
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              value={editedProfile.profile_color || ""}
+                              onChange={(e) =>
+                                setEditedProfile({
+                                  ...editedProfile,
+                                  profile_color: e.target.value,
+                                })
+                              }
+                              style={{
+                                color: editedProfile.profile_color
+                                  ? `var(--${editedProfile.profile_color}-700)`
+                                  : "inherit",
+                              }}
+                            >
+                              <option value="">Default</option>
+                              <option value="indigo">● Indigo</option>
+                              <option value="purple">● Purple</option>
+                              <option value="blue">● Blue</option>
+                              <option value="green">● Green</option>
+                              <option value="amber">● Amber</option>
+                              <option value="red">● Red</option>
+                              <option value="pink">● Pink</option>
+                            </select>
+                          </div>
+                          <div>
+                            <Label htmlFor="profileIcon">Profile Icon</Label>
+                            <select
+                              id="profileIcon"
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              value={editedProfile.profile_icon || ""}
+                              onChange={(e) =>
+                                setEditedProfile({
+                                  ...editedProfile,
+                                  profile_icon: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="">None</option>
+                              <option value="music">Music</option>
+                              <option value="star">Star</option>
+                              <option value="trophy">Trophy</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="mb-6">
+                          <Label htmlFor="profileBanner">
+                            Profile Banner URL
+                          </Label>
+                          <Input
+                            id="profileBanner"
+                            placeholder="https://example.com/banner.jpg"
+                            value={editedProfile.profile_banner || ""}
+                            onChange={(e) =>
+                              setEditedProfile({
+                                ...editedProfile,
+                                profile_banner: e.target.value,
+                              })
+                            }
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Enter a URL for your profile banner image
+                          </p>
+                        </div>
+
+                        <Separator className="my-4" />
+
+                        <h3 className="text-lg font-medium mb-2">
+                          Social Media Links
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="discord">Discord Username</Label>
+                            <Input
+                              id="discord"
+                              placeholder="username#0000"
+                              value={editedProfile.discord_username || ""}
+                              onChange={(e) =>
+                                setEditedProfile({
+                                  ...editedProfile,
+                                  discord_username: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="telegram">Telegram Username</Label>
+                            <Input
+                              id="telegram"
+                              placeholder="@username"
+                              value={editedProfile.telegram_username || ""}
+                              onChange={(e) =>
+                                setEditedProfile({
+                                  ...editedProfile,
+                                  telegram_username: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="instagram">
+                              Instagram Username
+                            </Label>
+                            <Input
+                              id="instagram"
+                              placeholder="@username"
+                              value={editedProfile.instagram_username || ""}
+                              onChange={(e) =>
+                                setEditedProfile({
+                                  ...editedProfile,
+                                  instagram_username: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="youtube">YouTube Channel</Label>
+                            <Input
+                              id="youtube"
+                              placeholder="channel name or URL"
+                              value={editedProfile.youtube_channel || ""}
+                              onChange={(e) =>
+                                setEditedProfile({
+                                  ...editedProfile,
+                                  youtube_channel: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
                         <div className="flex justify-end space-x-2">
                           <Button
                             variant="outline"
@@ -486,6 +733,134 @@ export default function UserProfilePage() {
                       )}
 
                       <Separator className="my-6" />
+
+                      {/* Social Media Links */}
+                      {(profile?.discord_username ||
+                        profile?.telegram_username ||
+                        profile?.instagram_username ||
+                        profile?.youtube_channel) && (
+                        <>
+                          <h3 className="text-sm font-medium mb-3">
+                            Connect with me
+                          </h3>
+                          <div className="flex flex-wrap gap-2 mb-6">
+                            {profile.discord_username && (
+                              <a
+                                href={`https://discord.com/users/${profile.discord_username}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-medium hover:bg-indigo-200 transition-colors"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <path d="M8 12h8" />
+                                  <path d="M12 8v8" />
+                                </svg>
+                                Discord
+                              </a>
+                            )}
+                            {profile.telegram_username && (
+                              <a
+                                href={`https://t.me/${profile.telegram_username.replace("@", "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-xs font-medium hover:bg-blue-200 transition-colors"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="m22 2-7 20-4-9-9-4Z" />
+                                  <path d="M22 2 11 13" />
+                                </svg>
+                                Telegram
+                              </a>
+                            )}
+                            {profile.instagram_username && (
+                              <a
+                                href={`https://instagram.com/${profile.instagram_username.replace("@", "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-100 text-pink-800 text-xs font-medium hover:bg-pink-200 transition-colors"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <rect
+                                    width="20"
+                                    height="20"
+                                    x="2"
+                                    y="2"
+                                    rx="5"
+                                    ry="5"
+                                  />
+                                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                                  <line
+                                    x1="17.5"
+                                    x2="17.51"
+                                    y1="6.5"
+                                    y2="6.5"
+                                  />
+                                </svg>
+                                Instagram
+                              </a>
+                            )}
+                            {profile.youtube_channel && (
+                              <a
+                                href={
+                                  profile.youtube_channel.startsWith("http")
+                                    ? profile.youtube_channel
+                                    : `https://youtube.com/c/${profile.youtube_channel}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 text-red-800 text-xs font-medium hover:bg-red-200 transition-colors"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+                                  <path d="m10 15 5-3-5-3z" />
+                                </svg>
+                                YouTube
+                              </a>
+                            )}
+                          </div>
+                        </>
+                      )}
 
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">

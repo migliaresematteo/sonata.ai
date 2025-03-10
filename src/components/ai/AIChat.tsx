@@ -59,7 +59,57 @@ export default function AIChat({ className = "" }: AITeacherProps) {
     setLoading(true);
 
     try {
-      // Try to call Supabase Edge Function for AI response
+      // First, check if user has a DeepSeek API key in settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from("user_settings")
+        .select("deepseek_api_key")
+        .eq("user_id", user?.id)
+        .single();
+
+      if (settingsError && settingsError.code !== "PGRST116") {
+        console.error("Error fetching user settings:", settingsError);
+      }
+
+      const deepseekApiKey = settingsData?.deepseek_api_key;
+
+      // If user has a DeepSeek API key, use it
+      if (deepseekApiKey) {
+        try {
+          // Call Supabase Edge Function with the API key
+          const { data, error } = await supabase.functions.invoke(
+            "ai-teacher",
+            {
+              body: {
+                message: input,
+                userId: user?.id,
+                userEmail: user?.email,
+                apiKey: deepseekApiKey,
+              },
+            },
+          );
+
+          if (error) throw error;
+
+          // Use the response from the edge function
+          if (data && data.response) {
+            const assistantMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: "assistant",
+              content: data.response,
+              timestamp: new Date(),
+            };
+
+            setMessages((prev) => [...prev, assistantMessage]);
+            setLoading(false);
+            return;
+          }
+        } catch (functionError) {
+          console.log("DeepSeek API error, using fallback:", functionError);
+          // Continue to fallback if DeepSeek API fails
+        }
+      }
+
+      // Try to call Supabase Edge Function without API key as fallback
       try {
         const { data, error } = await supabase.functions.invoke("ai-teacher", {
           body: {
@@ -73,14 +123,23 @@ export default function AIChat({ className = "" }: AITeacherProps) {
 
         // Use the response from the edge function if available
         if (data && data.response) {
-          return data.response;
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: data.response,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+          setLoading(false);
+          return;
         }
       } catch (functionError) {
         console.log("Edge function error, using fallback:", functionError);
         // Continue to fallback if edge function fails
       }
 
-      // If we don't have a real edge function yet, use a simulated response
+      // If all else fails, use a simulated response
       const aiResponse = simulateAIResponse(input);
 
       const assistantMessage: Message = {

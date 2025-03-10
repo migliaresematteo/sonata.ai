@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center mb-4">
             <Music className="h-8 w-8 text-indigo-500 mr-2" />
-            <span className="text-2xl font-bold">Virtuoso</span>
+            <span className="text-2xl font-bold">sonata.ai</span>
           </Link>
           <h1 className="text-3xl font-bold">Classical Musician's Assistant</h1>
           <p className="text-muted-foreground mt-2">

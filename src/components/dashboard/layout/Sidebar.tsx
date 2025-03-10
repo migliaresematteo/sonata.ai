@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +20,8 @@ import {
   UserPlus,
   Menu,
   X,
+  Users,
+  Award,
 } from "lucide-react";
 
 interface NavItem {
@@ -35,12 +37,6 @@ interface SidebarProps {
 
 const navItems: NavItem[] = [
   { icon: <Home size={20} />, label: "Home", href: "/" },
-  {
-    icon: <User size={20} />,
-    label: "Profile",
-    href: "/profile",
-    requiresAuth: true,
-  },
   {
     icon: <Music size={20} />,
     label: "Repertoire",
@@ -58,6 +54,18 @@ const navItems: NavItem[] = [
     icon: <Trophy size={20} />,
     label: "Missions",
     href: "/missions",
+    requiresAuth: true,
+  },
+  {
+    icon: <Users size={20} />,
+    label: "Social",
+    href: "/social",
+    requiresAuth: true,
+  },
+  {
+    icon: <Award size={20} />,
+    label: "Leaderboard",
+    href: "/leaderboard",
     requiresAuth: true,
   },
 ];
@@ -91,13 +99,25 @@ const Sidebar = ({ activeItem = "Dashboard" }: SidebarProps) => {
     setIsOpen(!isOpen);
   };
 
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      toggleSidebar();
+    };
+
+    document.addEventListener("toggle-sidebar", handleToggleSidebar);
+
+    return () => {
+      document.removeEventListener("toggle-sidebar", handleToggleSidebar);
+    };
+  }, []);
+
   const sidebarContent = (
     <>
       <div className="p-6 flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold mb-2">Virtuoso</h2>
+          <h2 className="text-xl font-semibold mb-2">Sonata.ai</h2>
           <p className="text-sm text-muted-foreground">
-            Classical Musician's Assistant
+            Classical Musician's Social
           </p>
         </div>
         <Button
@@ -156,17 +176,7 @@ const Sidebar = ({ activeItem = "Dashboard" }: SidebarProps) => {
           </>
         )}
 
-        {user && (
-          <>
-            <Separator className="my-4" />
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium px-4 py-2">Daily Missions</h3>
-              <div className="px-2">
-                <MissionsPanel />
-              </div>
-            </div>
-          </>
-        )}
+        {/* Missions panel removed from sidebar */}
       </ScrollArea>
 
       <div className="p-4 mt-auto border-t">
@@ -199,15 +209,7 @@ const Sidebar = ({ activeItem = "Dashboard" }: SidebarProps) => {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden mt-16"
-        onClick={toggleSidebar}
-      >
-        <Menu size={24} />
-      </Button>
+      {/* Mobile menu button removed - now in TopNavigation */}
 
       {/* Mobile sidebar */}
       <div

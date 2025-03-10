@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Bell,
   Home,
@@ -8,6 +8,9 @@ import {
   LogIn,
   Music,
   X,
+  Menu,
+  Users,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,13 +53,78 @@ const TopNavigation = ({
     pieces: any[];
     composers: any[];
   }>({ pieces: [], composers: [] });
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchPendingRequests();
+    }
+  }, [user]);
+
+  const fetchPendingRequests = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("user_connections")
+        .select(
+          `
+          id,
+          status,
+          created_at,
+          user:user_id (id, full_name, avatar_url)
+        `,
+        )
+        .eq("connected_user_id", user.id)
+        .eq("status", "pending");
+
+      if (error) throw error;
+      setPendingRequests(data || []);
+    } catch (error) {
+      console.error("Error fetching pending requests:", error);
+    }
+  };
+
+  const handleConnectionRequest = async (
+    connectionId: string,
+    accept: boolean,
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("user_connections")
+        .update({
+          status: accept ? "accepted" : "rejected",
+        })
+        .eq("id", connectionId);
+
+      if (error) throw error;
+
+      // Update local state
+      setPendingRequests((prev) =>
+        prev.filter((req) => req.id !== connectionId),
+      );
+    } catch (error) {
+      console.error("Error handling connection request:", error);
+    }
+  };
 
   // We'll render a simplified version for non-logged in users
 
   return (
     <div className="w-full h-16 border-b bg-background flex items-center justify-between px-4 fixed top-0 z-50">
       <div className="flex items-center gap-4 flex-1">
-        <Link to="/">
+        <div className="md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              document.dispatchEvent(new CustomEvent("toggle-sidebar"))
+            }
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+        <Link to="/" className="hidden md:block">
           <Home />
         </Link>
         <div className="relative w-64">
@@ -191,21 +259,123 @@ const TopNavigation = ({
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
                         <Bell className="h-5 w-5" />
-                        {notifications.length > 0 && (
+                        {(notifications.length > 0 ||
+                          pendingRequests.length > 0) && (
                           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                            {notifications.length}
+                            {notifications.length + pendingRequests.length}
                           </span>
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-80">
                       <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {notifications.map((notification) => (
-                        <DropdownMenuItem key={notification.id}>
-                          {notification.title}
-                        </DropdownMenuItem>
-                      ))}
+                      <div className="max-h-[300px] overflow-y-auto">
+                        <div className="p-2 border-b">
+                          <h4 className="text-sm font-medium mb-1">
+                            Friend Requests
+                          </h4>
+                          {pendingRequests.length > 0 ? (
+                            pendingRequests.slice(0, 3).map((request) => (
+                              <div
+                                key={request.id}
+                                className="flex items-center justify-between py-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage
+                                      src={request.user?.avatar_url}
+                                    />
+                                    <AvatarFallback>
+                                      {request.user?.full_name?.[0] || "U"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="text-sm">
+                                    <p className="font-medium">
+                                      {request.user?.full_name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Wants to connect
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7"
+                                    onClick={() =>
+                                      handleConnectionRequest(request.id, false)
+                                    }
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7"
+                                    onClick={() =>
+                                      handleConnectionRequest(request.id, true)
+                                    }
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground py-2">
+                              No pending friend requests
+                            </p>
+                          )}
+                          {pendingRequests.length > 3 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full text-xs"
+                              onClick={() =>
+                                document
+                                  .querySelector('[data-value="requests"]')
+                                  ?.click()
+                              }
+                            >
+                              View all requests
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="p-2">
+                          <h4 className="text-sm font-medium mb-1">
+                            News & Updates
+                          </h4>
+                          <div className="space-y-2">
+                            <div className="p-2 rounded-md bg-muted/50">
+                              <p className="text-sm font-medium">
+                                New Feature: Leaderboard
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Check out the new leaderboard to see top
+                                musicians!
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                2 days ago
+                              </p>
+                            </div>
+                            <div className="p-2 rounded-md bg-muted/50">
+                              <p className="text-sm font-medium">
+                                Profile Customization
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Personalize your profile with new customization
+                                options
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                5 days ago
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TooltipTrigger>
@@ -218,12 +388,16 @@ const TopNavigation = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/social")}
+                  >
+                    <Users className="h-5 w-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Settings</p>
+                  <p>Social</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

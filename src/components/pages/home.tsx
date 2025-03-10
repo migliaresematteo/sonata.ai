@@ -22,6 +22,7 @@ import {
   ChevronRight,
   CheckCircle,
   ArrowRight,
+  Trophy,
 } from "lucide-react";
 import { useState, useEffect, useContext, createContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -144,7 +145,7 @@ export default function LandingPage() {
             <Link to="/" className="font-bold text-xl flex items-center">
               <Music className="mr-2 h-5 w-5 text-indigo-600" />
               <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-extrabold">
-                Virtuoso
+                sonata.ai
               </span>
             </Link>
           </div>
@@ -208,110 +209,111 @@ export default function LandingPage() {
 
       <main className="container mx-auto px-4">
         {/* Hero Section */}
-        <section className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center pt-20">
-          <div className="relative w-full max-w-6xl mx-auto">
-            {/* Gradient orbs */}
-            <div className="absolute -top-24 -z-10 h-[300px] w-[300px] rounded-full bg-indigo-500/20 blur-[100px]" />
-            <div className="absolute -right-24 -top-48 -z-10 h-[300px] w-[300px] rounded-full bg-purple-500/20 blur-[100px]" />
-            <div className="absolute bottom-0 left-1/3 -z-10 h-[250px] w-[250px] rounded-full bg-blue-500/10 blur-[80px]" />
+        <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center pt-20 overflow-hidden">
+          {/* Full screen background image */}
+          <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 to-purple-900/80 z-10"></div>
+            <img
+              src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1920&q=80"
+              alt="Musician with piano"
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <div className="flex flex-col space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Badge
-                    className="w-fit px-3 py-1 text-sm bg-indigo-100 text-indigo-800 border-indigo-200"
-                    variant="outline"
-                  >
-                    AI-Powered Practice Assistant
-                  </Badge>
-                </motion.div>
-
-                <motion.h1
-                  className="text-5xl md:text-6xl font-bold tracking-tight"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  Elevate Your{" "}
-                  <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    Musical Journey
-                  </span>
-                </motion.h1>
-
-                <motion.p
-                  className="text-xl text-muted-foreground"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  A personalized AI-powered platform for classical musicians to
-                  manage repertoire, track practice progress, and engage with
-                  gamified learning experiences.
-                </motion.p>
-
-                <motion.div
-                  className="space-y-3 pt-2"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  {benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                      <span>{benefit}</span>
-                    </div>
-                  ))}
-                </motion.div>
-
-                <motion.div
-                  className="flex flex-col sm:flex-row gap-4 pt-6"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none"
-                    onClick={handleSignupClick}
-                  >
-                    {user ? "View My Repertoire" : "Start Your Journey"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-indigo-200 hover:bg-indigo-50"
-                    onClick={handleLoginClick}
-                  >
-                    {user ? "My Profile" : "Sign In"}
-                  </Button>
-                </motion.div>
-              </div>
+          {/* Content overlay */}
+          <div className="relative z-20 w-full max-w-6xl mx-auto px-4 py-12">
+            <div className="flex flex-col items-center md:items-start text-center md:text-left">
               <motion.div
-                className="relative"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.7 }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                <div className="absolute -top-10 -left-10 w-20 h-20 bg-purple-100 rounded-full z-0 animate-pulse"></div>
-                <div
-                  className="absolute -bottom-5 -right-5 w-16 h-16 bg-indigo-100 rounded-full z-0 animate-pulse"
-                  style={{ animationDelay: "1s" }}
-                ></div>
+                <Badge
+                  className="w-fit px-3 py-1 text-sm bg-white/20 backdrop-blur-sm text-white border-white/30"
+                  variant="outline"
+                >
+                  AI-Powered Classical Music Assistant
+                </Badge>
+              </motion.div>
 
-                <div className="rounded-2xl shadow-2xl overflow-hidden border-8 border-white relative z-10">
-                  <img
-                    src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=800&q=80"
-                    alt="Musician practicing piano"
-                    className="w-full h-auto rounded-lg"
-                  />
-                </div>
+              <motion.h1
+                className="text-5xl md:text-7xl font-bold tracking-tight leading-tight mt-6 text-white"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <span className="bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+                  sonata.ai
+                </span>
+                <br />
+                <span className="text-4xl md:text-5xl text-white/90">
+                  Your AI Practice Companion
+                </span>
+              </motion.h1>
+
+              <motion.p
+                className="text-xl text-white/80 max-w-xl mt-6"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                Transform your musical practice with AI-powered insights,
+                personalized feedback, and intelligent repertoire management
+                designed for classical musicians.
+              </motion.p>
+
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-8 w-full max-w-2xl"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                {benefits.map((benefit, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20"
+                  >
+                    <CheckCircle className="h-5 w-5 text-indigo-300 flex-shrink-0" />
+                    <span className="font-medium text-white">{benefit}</span>
+                  </div>
+                ))}
+              </motion.div>
+
+              <motion.div
+                className="flex flex-col sm:flex-row gap-4 pt-8"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <Button
+                  size="lg"
+                  className="bg-white hover:bg-white/90 text-indigo-900 shadow-lg shadow-indigo-900/20 text-lg h-14"
+                  onClick={handleSignupClick}
+                >
+                  {user ? "View My Repertoire" : "Start Your Journey"}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10 text-lg h-14"
+                  onClick={handleLoginClick}
+                >
+                  {user ? "My Profile" : "Sign In"}
+                </Button>
               </motion.div>
             </div>
+          </div>
+
+          {/* Floating UI elements - positioned absolutely relative to the section */}
+          <div className="absolute top-[20%] right-[5%] bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg z-20 flex items-center gap-2 border border-indigo-100 animate-float hidden md:flex">
+            <Sparkles className="h-5 w-5 text-indigo-600" />
+            <span className="font-medium text-sm">AI Practice Analysis</span>
+          </div>
+
+          <div className="absolute bottom-[15%] right-[10%] bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg z-20 flex items-center gap-2 border border-indigo-100 animate-float-delay hidden md:flex">
+            <Trophy className="h-5 w-5 text-amber-500" />
+            <span className="font-medium text-sm">Level 5 Achieved!</span>
           </div>
         </section>
 
@@ -320,7 +322,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <Badge
               variant="outline"
-              className="mb-4 px-3 py-1 bg-indigo-50 text-indigo-700 border-indigo-200"
+              className="mb-4 px-3 py-1 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200"
             >
               Features
             </Badge>
@@ -328,7 +330,7 @@ export default function LandingPage() {
               Everything You Need to Excel
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Our platform combines powerful tools with an intuitive interface
+              sonata.ai combines powerful AI tools with an intuitive interface
               to help you practice more effectively.
             </p>
           </div>
@@ -384,7 +386,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Join thousands of musicians who have transformed their practice
-              routine.
+              routine with sonata.ai.
             </p>
           </div>
 
@@ -455,41 +457,45 @@ export default function LandingPage() {
 
         {/* CTA Section */}
         <section className="py-20 text-center">
-          <div className="max-w-3xl mx-auto bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-12 shadow-2xl text-white">
-            <motion.h2
-              className="text-3xl md:text-4xl font-bold mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              Ready to Transform Your Practice?
-            </motion.h2>
-            <motion.p
-              className="text-xl text-white/90 mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: true }}
-            >
-              Join our community of passionate musicians and take your skills to
-              the next level.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <Button
-                size="lg"
-                className="bg-white text-indigo-700 hover:bg-gray-100"
-                onClick={handleSignupClick}
+          <div className="max-w-3xl mx-auto bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-12 shadow-2xl text-white relative overflow-hidden">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="relative z-10">
+              <motion.h2
+                className="text-3xl md:text-4xl font-bold mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
               >
-                {user ? "Go to Dashboard" : "Get Started Today"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </motion.div>
+                Ready to Transform Your Practice?
+              </motion.h2>
+              <motion.p
+                className="text-xl text-white/90 mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true }}
+              >
+                Join our community of passionate musicians and take your skills
+                to the next level.
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <Button
+                  size="lg"
+                  className="bg-white text-indigo-700 hover:bg-gray-100"
+                  onClick={handleSignupClick}
+                >
+                  {user ? "Go to Dashboard" : "Get Started Today"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+            </div>
           </div>
         </section>
       </main>
@@ -500,7 +506,7 @@ export default function LandingPage() {
             <div className="flex items-center mb-4 md:mb-0">
               <Music className="mr-2 h-5 w-5 text-indigo-600" />
               <span className="font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Virtuoso
+                sonata.ai
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
