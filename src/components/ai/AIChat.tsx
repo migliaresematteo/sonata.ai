@@ -27,17 +27,59 @@ export default function AIChat({ className = "" }: AITeacherProps) {
   useEffect(() => {
     // Add initial welcome message
     if (messages.length === 0) {
-      setMessages([
-        {
-          id: "welcome",
-          role: "assistant",
-          content:
-            "Hello! I'm your AI music assistant. I can help you with practice techniques, provide feedback on your progress, and suggest exercises tailored to your skill level. What would you like help with today?",
-          timestamp: new Date(),
-        },
-      ]);
+      // First, check if user has a DeepSeek API key in settings
+      const checkApiKey = async () => {
+        try {
+          const { data: settingsData, error: settingsError } = await supabase
+            .from("user_settings")
+            .select("deepseek_api_key")
+            .eq("user_id", user?.id)
+            .single();
+
+          if (settingsError && settingsError.code !== "PGRST116") {
+            console.error("Error fetching user settings:", settingsError);
+          }
+
+          const deepseekApiKey = settingsData?.deepseek_api_key;
+
+          if (deepseekApiKey) {
+            setMessages([
+              {
+                id: "welcome",
+                role: "assistant",
+                content:
+                  "Hello! I'm your AI music assistant. I can help you with practice techniques, provide feedback on your progress, and suggest exercises tailored to your skill level. What would you like help with today?",
+                timestamp: new Date(),
+              },
+            ]);
+          } else {
+            setMessages([
+              {
+                id: "welcome",
+                role: "assistant",
+                content:
+                  "Welcome to the AI music assistant! To use this feature, please add your DeepSeek API key in the Settings page. This will unlock personalized practice recommendations and feedback tailored to your needs.",
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        } catch (error) {
+          console.error("Error checking API key:", error);
+          setMessages([
+            {
+              id: "welcome",
+              role: "assistant",
+              content:
+                "Welcome to the AI music assistant! There was an issue checking your settings. Please make sure you have added your DeepSeek API key in the Settings page to use this feature.",
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      };
+
+      checkApiKey();
     }
-  }, [messages.length]);
+  }, [messages.length, user?.id]);
 
   useEffect(() => {
     // Scroll to bottom of messages
@@ -72,56 +114,36 @@ export default function AIChat({ className = "" }: AITeacherProps) {
 
       const deepseekApiKey = settingsData?.deepseek_api_key;
 
-      // If user has a DeepSeek API key, use it
-      if (deepseekApiKey) {
-        try {
-          // Call Supabase Edge Function with the API key
-          const { data, error } = await supabase.functions.invoke(
-            "ai-teacher",
-            {
-              body: {
-                message: input,
-                userId: user?.id,
-                userEmail: user?.email,
-                apiKey: deepseekApiKey,
-              },
-            },
-          );
+      // If user doesn't have a DeepSeek API key, show a message to add one
+      if (!deepseekApiKey) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content:
+            "To use the AI assistant features, please add your DeepSeek API key in the Settings page. This allows you to get personalized practice recommendations and feedback.",
+          timestamp: new Date(),
+        };
 
-          if (error) throw error;
-
-          // Use the response from the edge function
-          if (data && data.response) {
-            const assistantMessage: Message = {
-              id: (Date.now() + 1).toString(),
-              role: "assistant",
-              content: data.response,
-              timestamp: new Date(),
-            };
-
-            setMessages((prev) => [...prev, assistantMessage]);
-            setLoading(false);
-            return;
-          }
-        } catch (functionError) {
-          console.log("DeepSeek API error, using fallback:", functionError);
-          // Continue to fallback if DeepSeek API fails
-        }
+        setMessages((prev) => [...prev, assistantMessage]);
+        setLoading(false);
+        return;
       }
 
-      // Try to call Supabase Edge Function without API key as fallback
+      // User has a DeepSeek API key, use it
       try {
+        // Call Supabase Edge Function with the API key
         const { data, error } = await supabase.functions.invoke("ai-teacher", {
           body: {
             message: input,
             userId: user?.id,
             userEmail: user?.email,
+            apiKey: deepseekApiKey,
           },
         });
 
         if (error) throw error;
 
-        // Use the response from the edge function if available
+        // Use the response from the edge function
         if (data && data.response) {
           const assistantMessage: Message = {
             id: (Date.now() + 1).toString(),
@@ -135,21 +157,21 @@ export default function AIChat({ className = "" }: AITeacherProps) {
           return;
         }
       } catch (functionError) {
-        console.log("Edge function error, using fallback:", functionError);
-        // Continue to fallback if edge function fails
+        console.log("DeepSeek API error:", functionError);
+
+        // Show error message about API key
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content:
+            "There was an issue with your DeepSeek API key. Please check that it's valid in the Settings page.",
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, errorMessage]);
+        setLoading(false);
+        return;
       }
-
-      // If all else fails, use a simulated response
-      const aiResponse = simulateAIResponse(input);
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: aiResponse,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error getting AI response:", error);
 
@@ -173,40 +195,6 @@ export default function AIChat({ className = "" }: AITeacherProps) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
-
-  // Simulate AI response for testing
-  const simulateAIResponse = (userInput: string) => {
-    const responses = [
-      "Based on your practice history, I recommend focusing on improving your finger technique. Try practicing scales slowly with a metronome, gradually increasing the tempo as you become more comfortable.",
-      "For Bach's pieces, pay special attention to articulation and ornaments. Try practicing each hand separately before combining them.",
-      "To improve your sight-reading skills, I recommend spending 10-15 minutes each day reading through new pieces at a comfortable tempo. Don't worry about mistakes - the goal is to keep going and train your eyes to look ahead.",
-      "For your current repertoire, I suggest dividing each piece into smaller sections and practicing them intensively. Focus on one section per day, and review previously mastered sections regularly.",
-      "Based on your progress, you might be ready to tackle more challenging pieces. Consider adding some Chopin or Debussy to your repertoire to develop different aspects of your technique.",
-      "When practicing the Moonlight Sonata, focus on maintaining an even tempo and bringing out the melody in the top voice while keeping the triplet accompaniment soft and flowing.",
-      "For Chopin's Nocturnes, work on your pedaling technique. The pedal should create a smooth, connected sound without blurring harmonies.",
-      "I recommend practicing with a metronome to develop a solid sense of rhythm, especially for pieces with complex rhythmic patterns.",
-    ];
-
-    // Simple keyword matching for more relevant responses
-    if (userInput.toLowerCase().includes("bach")) {
-      return "For Bach's counterpoint, I recommend practicing each voice separately before combining them. Pay attention to the independence of each line while maintaining a cohesive whole.";
-    } else if (userInput.toLowerCase().includes("chopin")) {
-      return "Chopin's music requires a delicate touch and expressive rubato. Practice with a flexible wrist and focus on creating a singing tone for the melodies.";
-    } else if (
-      userInput.toLowerCase().includes("beginner") ||
-      userInput.toLowerCase().includes("start")
-    ) {
-      return "For beginners, I recommend starting with pieces like Bach's Minuet in G, Clementi's Sonatinas, or Schumann's 'The Merry Farmer'. These pieces will help develop fundamental techniques while being musically rewarding.";
-    } else if (
-      userInput.toLowerCase().includes("technique") ||
-      userInput.toLowerCase().includes("finger")
-    ) {
-      return "To improve finger technique, practice Hanon exercises, scales, and arpeggios daily. Start slowly with a metronome and gradually increase the tempo as you gain confidence and accuracy.";
-    }
-
-    // Return a random response if no keywords match
-    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   return (

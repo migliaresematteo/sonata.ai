@@ -284,7 +284,9 @@ export type Database = {
           id: string
           instagram_username: string | null
           instrument: string | null
+          last_seen: string | null
           level: number | null
+          online_status: string | null
           profile_accessories: Json | null
           profile_banner: string | null
           profile_color: string | null
@@ -304,7 +306,9 @@ export type Database = {
           id: string
           instagram_username?: string | null
           instrument?: string | null
+          last_seen?: string | null
           level?: number | null
+          online_status?: string | null
           profile_accessories?: Json | null
           profile_banner?: string | null
           profile_color?: string | null
@@ -324,7 +328,9 @@ export type Database = {
           id?: string
           instagram_username?: string | null
           instrument?: string | null
+          last_seen?: string | null
           level?: number | null
+          online_status?: string | null
           profile_accessories?: Json | null
           profile_banner?: string | null
           profile_color?: string | null
@@ -592,7 +598,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      schedule_update_user_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      set_users_offline: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
